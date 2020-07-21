@@ -132,11 +132,12 @@ namespace qpmodel
             Catalog.Init();
 
             string sql = "";
-
+            var appbin_dir = AppContext.BaseDirectory.Substring(0, AppContext.BaseDirectory.LastIndexOf("bin"));
             if (false)
             {
                 JOBench.CreateTables();
-                sql = File.ReadAllText("../../../../../jobench/10a.sql");
+
+                sql = File.ReadAllText($@"{appbin_dir}/../jobench/10a.sql");
                 goto doit;
             }
 

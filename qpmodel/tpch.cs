@@ -140,8 +140,8 @@ namespace qpmodel.test
     {
         static public void CreateTables()
         {
-            string curdir = Directory.GetCurrentDirectory();
-            string folder = $@"{curdir}/../../../../jobench/sql_scripts";
+            var appbin_dir = AppContext.BaseDirectory.Substring(0, AppContext.BaseDirectory.LastIndexOf("bin"));
+            string folder = $@"{appbin_dir}/../jobench/sql_scripts";
             string filename = $@"{folder}/schema.sql";
             var sql = File.ReadAllText(filename);
             SQLStatement.ExecSQLList(sql);
