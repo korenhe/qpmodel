@@ -175,12 +175,12 @@ namespace qpmodel
 
             // query options might be conflicting or incomplete
             Console.WriteLine(sql);
-            var a = RawParser.ParseSingleSqlStatement(sql);
+            SQLStatement a = RawParser.ParseSingleSqlStatement(sql);
             ExplainOption.show_tablename_ = false;
             a.queryOpt_.profile_.enabled_ = true;
             a.queryOpt_.optimize_.enable_subquery_unnest_ = true;
             a.queryOpt_.optimize_.remove_from_ = false;
-            a.queryOpt_.optimize_.use_memo_ = true;
+            a.queryOpt_.optimize_.use_memo_ = false;
             a.queryOpt_.optimize_.enable_cte_plan_ = true;
             a.queryOpt_.optimize_.use_codegen_ = false;
             a.queryOpt_.optimize_.memo_disable_crossjoin_ = false;
@@ -196,7 +196,8 @@ namespace qpmodel
             a.Bind(null);
 
             // -- generate an initial plan
-            var rawplan = a.CreatePlan();
+            LogicNode rawplan = a.CreatePlan();
+            Console.WriteLine("================================= PLAN");
             Console.WriteLine("***************** raw plan *************");
             Console.WriteLine(rawplan.Explain());
 
@@ -218,7 +219,7 @@ namespace qpmodel
             {
                 // -- optimize the plan
                 Console.WriteLine("-- optimized plan --");
-                var optplan = a.SubstitutionOptimize();
+                LogicNode optplan = a.SubstitutionOptimize();
                 Console.WriteLine(optplan.Explain(a.queryOpt_.explain_));
 
                 // -- physical plan
@@ -246,10 +247,17 @@ namespace qpmodel
                 CodeWriter.WriteLine(code);
                 Compiler.Run(Compiler.Compile(), a, context);
             }
+            Console.WriteLine("================================= Explain");
             Console.WriteLine(phyplan.Explain(a.queryOpt_.explain_));
 
             stopWatch.Stop();
+
+
             Console.WriteLine("RunTime: " + stopWatch.Elapsed);
+            
+            //sql = "select a1, a2 from a tablesample row (2) where a1 >=1";
+           
+
             Console.ReadKey();
         }
     }

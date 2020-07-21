@@ -516,8 +516,10 @@ namespace qpmodel.logic
             // transform where clause - we only want one filter
             if (where_ != null)
             {
-                if (!(root is LogicFilter lr))
+                if (!(root is LogicFilter lr)) {
                     root = new LogicFilter(root, where_);
+                    Console.WriteLine("LogicFilter add ==== " + where_);
+                }
                 else
                     lr.filter_ = lr.filter_.AddAndFilter(where_);
                 if (where_ != null && where_.HasAggFunc())
