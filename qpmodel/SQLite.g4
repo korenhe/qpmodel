@@ -162,17 +162,23 @@ column_constraint
     AND
     OR
 */
+arith_expr
+: signed_number #NumericExpr
+ | arith_expr op=( '*' | '/' | '%' ) arith_expr							#arithtimesexpr
+ | arith_expr op=( PLUS | MINUS ) arith_expr							#arithplusexpr
+/* TODO: not impl. */
+ | arith_expr op=( '<<' | '>>' | '&' | '|' ) arith_expr					#arithbitexpr
+;
+
 expr
  : literal_value											#LiteralExpr
  | BIND_PARAMETER											#bindexpr
  | ( ( database_name '.' )? table_name '.' )? column_name	#ColExpr
  | unary_operator expr										#unaryexpr
  | expr '||' expr											#strconexpr
- | expr op=( '*' | '/' | '%' ) expr							#arithtimesexpr
- | expr op=( PLUS | MINUS ) expr							#arithplusexpr
- | expr op=( '<<' | '>>' | '&' | '|' ) expr					#arithbitexpr
- | expr op=( '<' | '<=' | '>' | '>=' ) expr					#arithcompexpr																		
- | expr K_NOT? K_BETWEEN '(' expr ',' expr ')'				#BetweenExpr
+ | expr op=( '<' | '<=' | '>' | '>=' ) expr					#arithcompexpr
+ | arith_expr													#arithexpr
+ | expr K_NOT? K_BETWEEN arith_expr K_AND  arith_expr  				#betweenExpr
  | expr K_IS K_NOT? expr									#IsExpr
  | expr K_NOT? K_LIKE expr									#LikeExpr
  | expr op=( '=' | '==' | '!=' | '<>' 
@@ -671,7 +677,7 @@ STRING_LITERAL
  : '\'' ( ~'\'' | '\'\'' )* '\''
  ;
 
- DATE_LITERAL
+DATE_LITERAL
  : NUMERIC_LITERAL K_DATE
  ;
 

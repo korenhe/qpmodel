@@ -165,9 +165,11 @@ namespace qpmodel
                 goto doit;
             }
 
+            // sql = "select * from a tablesample row (2)";
+            // sql = "select a1, a2 from a tablesample row (2) where a1 >=1";
+            sql = "select a1, a2 from a tablesample row (2) where a1 between 1 and 1+2 and a1 <= 2";
+            // sql = "select a1, a2 from a tablesample row (2) where a1 between (1, 2)";
         doit:
-            sql = "select * from a tablesample row (2)";
-
             var datetime = new DateTime();
             datetime = DateTime.Now;
 

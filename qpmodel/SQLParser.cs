@@ -95,6 +95,15 @@ namespace qpmodel.sqlparser
             => new LiteralExpr(context.STRING_LITERAL().GetText(), new DateTimeType());
         public override object VisitIntervalLiteral([NotNull] SQLiteParser.IntervalLiteralContext context)
             => new LiteralExpr(context.STRING_LITERAL().GetText(), context.date_unit_single().GetText());
+        public override object VisitNumericExpr([NotNull] SQLiteParser.NumericExprContext context)
+        {
+
+            Debug.Assert(context.signed_number() != null);
+            if (context.signed_number().GetText().Contains("."))
+                return new LiteralExpr(context.signed_number().GetText(), new DoubleType());
+            else
+                return new LiteralExpr(context.signed_number().GetText(), new IntType());
+        }
         public override object VisitNumericOrDateLiteral([NotNull] SQLiteParser.NumericOrDateLiteralContext context)
         {
             if (context.date_unit_plural() != null)
@@ -117,16 +126,16 @@ namespace qpmodel.sqlparser
         public override object VisitBrackexpr([NotNull] SQLiteParser.BrackexprContext context)
             => Visit(context.expr());
         public override object VisitArithtimesexpr([NotNull] SQLiteParser.ArithtimesexprContext context)
-            => new BinExpr((Expr)Visit(context.expr(0)), (Expr)Visit(context.expr(1)), context.op.Text);
+            => new BinExpr((Expr)Visit(context.arith_expr(0)), (Expr)Visit(context.arith_expr(1)), context.op.Text);
         public override object VisitArithplusexpr([NotNull] SQLiteParser.ArithplusexprContext context)
-            => new BinExpr((Expr)Visit(context.expr(0)), (Expr)Visit(context.expr(1)), context.op.Text);
+            => new BinExpr((Expr)Visit(context.arith_expr(0)), (Expr)Visit(context.arith_expr(1)), context.op.Text);
         public override object VisitStrconexpr([NotNull] SQLiteParser.StrconexprContext context)
             => new BinExpr((Expr)Visit(context.expr(0)), (Expr)Visit(context.expr(1)), "||");
         
         public override object VisitBetweenExpr([NotNull] SQLiteParser.BetweenExprContext context)
         {
-            var left = new BinExpr((Expr)Visit(context.expr(0)), (Expr)Visit(context.expr(1)), ">=");
-            var right = new BinExpr((Expr)Visit(context.expr(0)), (Expr)Visit(context.expr(2)), "<=");
+            var left = new BinExpr((Expr)Visit(context.expr()), (Expr)Visit(context.arith_expr(0)), ">=");
+            var right = new BinExpr((Expr)Visit(context.expr()), (Expr)Visit(context.arith_expr(1)), "<=");
             return new LogicAndExpr(left, right);
         }
         public override object VisitFuncExpr([NotNull] SQLiteParser.FuncExprContext context)
