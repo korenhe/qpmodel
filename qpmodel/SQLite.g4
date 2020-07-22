@@ -163,7 +163,7 @@ column_constraint
     OR
 */
 arith_expr
-: signed_number #NumericExpr
+: literal_value  #LiteralExpr
  | arith_expr op=( '*' | '/' | '%' ) arith_expr							#arithtimesexpr
  | arith_expr op=( PLUS | MINUS ) arith_expr							#arithplusexpr
 /* TODO: not impl. */
@@ -171,8 +171,7 @@ arith_expr
 ;
 
 expr
- : literal_value											#LiteralExpr
- | BIND_PARAMETER											#bindexpr
+ : BIND_PARAMETER											#bindexpr
  | ( ( database_name '.' )? table_name '.' )? column_name	#ColExpr
  | unary_operator expr										#unaryexpr
  | expr '||' expr											#strconexpr

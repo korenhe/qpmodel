@@ -95,7 +95,7 @@ namespace qpmodel.sqlparser
             => new LiteralExpr(context.STRING_LITERAL().GetText(), new DateTimeType());
         public override object VisitIntervalLiteral([NotNull] SQLiteParser.IntervalLiteralContext context)
             => new LiteralExpr(context.STRING_LITERAL().GetText(), context.date_unit_single().GetText());
-        public override object VisitNumericExpr([NotNull] SQLiteParser.NumericExprContext context)
+/*        public override object VisitNumericExpr([NotNull] SQLiteParser.NumericExprContext context)
         {
 
             Debug.Assert(context.signed_number() != null);
@@ -104,6 +104,7 @@ namespace qpmodel.sqlparser
             else
                 return new LiteralExpr(context.signed_number().GetText(), new IntType());
         }
+*/
         public override object VisitNumericOrDateLiteral([NotNull] SQLiteParser.NumericOrDateLiteralContext context)
         {
             if (context.date_unit_plural() != null)
