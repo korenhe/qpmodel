@@ -153,7 +153,7 @@ namespace qpmodel
             if (false)
             {
                 //84
-                sql = File.ReadAllText("../../../../tpcds/q33.sql");
+                sql = File.ReadAllText("../../../../tpcds/q31.sql");
                 Tpcds.CreateTables();
                 Tpcds.LoadTables("tiny");
                 Tpcds.AnalyzeTables();
@@ -163,9 +163,9 @@ namespace qpmodel
                 // 10,11,13, 31, 38, 41, 48, 54, 66, 72, 74: too slow
                 goto doit;
             }
-
+            sql = "select a1, sum(a1) from a group by a1 having sum(a2) > a3;";
         doit:
-            sql = "select * from a tablesample row (2)";
+            
 
             var datetime = new DateTime();
             datetime = DateTime.Now;

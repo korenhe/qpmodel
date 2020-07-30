@@ -719,7 +719,7 @@ namespace qpmodel.expr
             if (!(obj is Expr))
                 return false;
             var n = obj as Expr;
-            return object.Equals(_, n._) && tableRefs_.SequenceEqual(n.tableRefs_) &&
+            return tableRefs_.SequenceEqual(n.tableRefs_) &&
                 children_.SequenceEqual(n.children_);
         }
 
@@ -1231,9 +1231,10 @@ namespace qpmodel.expr
         // child_() can't be an ExprRef again
         internal Expr expr_() => child_();
         internal int ordinal_;
+        bool flag_;
 
         public override string ToString() => $@"{{{expr_().ToString().RemovePositions()}}}[{ordinal_}]";
-        public ExprRef(Expr expr, int ordinal) : base()
+        public ExprRef(Expr expr, int ordinal, bool flag = false) : base()
         {
             if (expr is ExprRef ee)
                 expr = ee.expr_();
@@ -1242,11 +1243,12 @@ namespace qpmodel.expr
             ordinal_ = ordinal;
             type_ = expr.type_;
             bounded_ = expr.bounded_;
-
+            flag_ = flag;
             // reuse underlying expression's id
             _ = expr._;
         }
 
+        public bool getFlag() => flag_;
         public override int GetHashCode() => expr_().GetHashCode();
         public override bool Equals(object obj)
         {

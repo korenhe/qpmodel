@@ -107,10 +107,19 @@ namespace qpmodel.utils
         //  if any visit returns a true, stop recursion. So if you want to
         //  visit all nodes regardless, use TraverseEachNode(). 
         // 
-        public bool VisitEachExists(Func<T, bool> callback, List<Type> excluding = null)
+        public bool VisitEachExists(Func<T, bool> callback, List<Type> excluding = null, Func<T, bool> callback2 = null)
         {
             if (excluding?.Contains(GetType()) ?? false)
-                return false;
+            {
+                if (GetType() == typeof(ExprRef) && callback2 != null)
+                {
+                    bool ret = callback2((T)this);
+                    if (!ret)
+                        return false;
+                }
+                else
+                    return false;
+            }
 
             bool exists = callback((T)this);
             if (!exists)

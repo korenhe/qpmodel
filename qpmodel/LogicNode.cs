@@ -254,7 +254,7 @@ namespace qpmodel.logic
             return tableRefs_;
         }
 
-        internal Expr CloneFixColumnOrdinal(Expr toclone, List<Expr> source)
+        internal Expr CloneFixColumnOrdinal(Expr toclone, List<Expr> source, bool whole=true)
         {
             Debug.Assert(toclone.bounded_);
             Debug.Assert(toclone._ != null);
@@ -262,12 +262,13 @@ namespace qpmodel.logic
 
             // first try to match the whole expression - don't do this for ColExpr
             // because it has no practial benefits.
-            // 
-            if (!(clone is ColExpr))
+            //
+
+            if (!(clone is ColExpr) && whole)
             {
                 int ordinal = source.FindIndex(clone.Equals);
                 if (ordinal != -1)
-                    return new ExprRef(clone, ordinal);
+                    return new ExprRef(clone, ordinal, true);
             }
 
             // let's first fix Aggregation as a whole epxression - there could be some combinations
@@ -582,7 +583,7 @@ namespace qpmodel.logic
                     }
                 }
 
-                Debug.Assert(leftKeys_.Count == rightKeys_.Count);
+                //Debug.Assert(leftKeys_.Count == rightKeys_.Count);
             }
 
             // reset the old values
@@ -894,7 +895,7 @@ namespace qpmodel.logic
                     for (int i = 0; i < groupby_.Count; i++)
                     {
                         var g = groupby_[i];
-                        e = e.SearchAndReplace(g, new ExprRef(g, i));
+                        e = e.SearchAndReplace(g, new ExprRef(g, i, true));
                     }
                 }
 
@@ -938,10 +939,27 @@ namespace qpmodel.logic
             child_().ResolveColumnOrdinal(reqFromChild);
             var childout = child_().output_;
 
+            List<Expr> groupby_copy = new List<Expr>();
+            if (groupby_ != null)
+                groupby_copy = groupby_.CloneList();
+
             if (groupby_ != null)
                 groupby_ = CloneFixColumnOrdinal(groupby_, childout, true);
             if (having_ != null)
                 having_ = CloneFixColumnOrdinal(having_, childout);
+
+            // only keep colexpr in childout
+            /*
+            List<Expr> childout_col = new List<Expr>();
+            childout.ForEach(x =>
+            {
+                if (x is ColExpr)
+                {
+                    childout_col.Add(x);
+                }
+            });
+            */
+
             output_ = CloneFixColumnOrdinal(reqOutput, childout, removeRedundant);
 
             // Bound aggrs to output, so when we computed aggrs, we automatically get output
@@ -973,7 +991,6 @@ namespace qpmodel.logic
                         aggrFns_.Add(y);
                     x = x.SearchAndReplace(y, new ExprRef(y, nkeys + aggrFns_.IndexOf(y)));
                 });
-
                 newoutput.Add(x);
             });
             if (having_ != null && groupby_ != null)
@@ -991,10 +1008,44 @@ namespace qpmodel.logic
             // contains no expression consists invalid expression
             //
             Expr offending = null;
+            
             newoutput.ForEach(x =>
             {
-                if (x.VisitEachExists(y => y is ColExpr, new List<Type> { typeof(ExprRef) }))
-                    offending = x;
+                if (x.VisitEachExists(y => y is ColExpr,
+                                      new List<Type> { typeof(ExprRef) },
+                                      y => {
+                                          return ((ExprRef)y).getFlag();
+                                      }))
+                {
+                    // check if x in groupby_ list, if in, we can go
+                    Console.WriteLine(x);
+                    bool match = false;
+                    x.VisitEach(target =>
+                    {
+                        if (match)
+                            return;
+                        Console.WriteLine(target);
+                        target = CloneFixColumnOrdinal(target, childout, false);
+
+                        
+                        if (groupby_ != null)
+                        {
+                            groupby_.ForEach(g =>
+                            {
+                                if (target.Equals(g))
+                                {
+                                    match = true;
+                                    return;
+                                }
+                            });
+
+                            if (!match)
+                                offending = x;
+                        }
+                        if (match)
+                            return;
+                    });
+                }
             });
             if (offending != null)
                 throw new SemanticAnalyzeException($"column {offending} must appear in group by clause");
